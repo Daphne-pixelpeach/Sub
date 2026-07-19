@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0a0a1a">
+    <title>Subliminal Audio</title>
+    <link rel="manifest" href="data:application/json,{&quot;name&quot;:&quot;Subliminal Audio&quot;,&quot;short_name&quot;:&quot;Subliminal&quot;,&quot;start_url&quot;:&quot;./&quot;,&quot;display&quot;:&quot;standalone&quot;,&quot;background_color&quot;:&quot;#0a0a1a&quot;,&quot;theme_color&quot;:&quot;#d946a0&quot;,&quot;icons&quot;:[]}">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --dark-bg: #0a0a1a;
+            --deep-pink: #d946a0;
+            --soft-purple: #a78bfa;
+            --cream: #f5f1ed;
+            --airy-lavender: #e9d5ff;
+            --dark-purple: #2d1b4e;
+            --mystery-blue: #1e3a5f;
+        }
+
+        html, body {
+            height: 100%;
+            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--dark-bg);
+            color: var(--cream);
+            overflow-x: hidden;
+        }
+
+        body {
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(217, 70, 160, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(30, 58, 95, 0.06) 0%, transparent 50%);
+            background-attachment: fixed;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            padding: 2rem 1.5rem;
+            background: linear-gradient(135deg, rgba(10, 10, 26, 0.98) 0%, rgba(45, 27, 78, 0.05) 100%);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(217, 70, 160, 0.2);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        h1 {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 2rem;
+            font-weight: 600;
+            letter-spacing: -1px;
+            background: linear-gradient(135deg, var(--deep-pink) 0%, var(--soft-purple) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        main {
+            flex: 1;
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        @media (max-width: 1024px) {
+            main {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Player Section */
+        .player-container {
+            background: linear-gradient(135deg, rgba(45, 27, 78, 0.3) 0%, rgba(30, 58, 95, 0.2) 100%);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(217, 70, 160, 0.2);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px rgba(217, 70, 160, 0.1);
+            grid-column: 1 / -1;
+        }
+
+        .track-info {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .track-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--deep-pink);
+            margin-bottom: 0.5rem;
+            word-break: break-word;
+        }
+
+        .track-time {
+            font-size: 0.9rem;
+            color: rgba(245, 241, 237, 0.6);
+            font-family: 'Courier New', monospace;
+            letter-spacing: 1px;
+        }
+
+        .progress-container {
+            margin: 1.5rem 0;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(217, 70, 160, 0.2);
+            border-radius: 3px;
+            cursor: pointer;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--deep-pink) 0%, var(--soft-purple) 100%);
+            border-radius: 3px;
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+
+        .progress-bar:hover .progress-fill {
+            box-shadow: 0 0 12px rgba(217, 70, 160, 0.5);
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1.5rem;
+            margin: 2rem 0;
+            flex-wrap: wrap;
+        }
+
+        button {
+            background: linear-gradient(135deg, var(--deep-pink) 0%, var(--soft-purple) 100%);
+            border: none;
+            color: var(--dark-bg);
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(217, 70, 160, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: rgba(217, 70, 160, 0.2);
+            border: 1px solid rgba(217, 70, 160, 0.5);
+            color: var(--deep-pink);
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(217, 70, 160, 0.3);
+        }
+
+        .btn-icon {
+            width: 50px;
+            height: 50px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            border-radius: 50%;
+        }
+
+        .play-btn {
+            width: 70px;
+            height: 70px;
+            font-size: 1.8rem;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Volume Controls */
+        .volume-controls {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            padding: 1.5rem;
+            background: rgba(245, 241, 237, 0.03);
+            border-radius: 8px;
+            margin-top: 1.5rem;
+        }
+
+        .volume-control {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        .volume-label {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--deep-pink);
+            font-weight: 600;
+        }
+
+        .volume-value {
+            font-size: 0.9rem;
+            color: var(--soft-purple);
+            font-weight: 600;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            cursor: pointer;
+            accent-color: var(--deep-pink);
+        }
+
+        /* Upload Sections */
+        .upload-sections {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+
+        .upload-section {
+            background: linear-gradient(135deg, rgba(45, 27, 78, 0.3) 0%, rgba(30, 58, 95, 0.2) 100%);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(217, 70, 160, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px rgba(217, 70, 160, 0.1);
+        }
+
+        .section-title {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 1.3rem;
+            color: var(--deep-pink);
+            margin-bottom: 1rem;
+            border-bottom: 1px solid rgba(217, 70, 160, 0.2);
+            padding-bottom: 0.75rem;
+        }
+
+        .upload-area {
+            border: 2px dashed rgba(217, 70, 160, 0.3);
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .upload-area:hover {
+            border-color: rgba(217, 70, 160, 0.6);
+            background: rgba(217, 70, 160, 0.05);
+        }
+
+        .upload-area.dragover {
+            border-color: var(--deep-pink);
+            background: rgba(217, 70, 160, 0.1);
+        }
+
+        .upload-text {
+            font-size: 0.9rem;
+            color: rgba(245, 241, 237, 0.7);
+        }
+
+        .upload-text small {
+            display: block;
+            color: rgba(245, 241, 237, 0.5);
+            font-size: 0.8rem;
+            margin-top: 0.4rem;
+        }
+
+        .playlist {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            max-height: 250px;
+            overflow-y: auto;
+            margin-top: 1rem;
+        }
+
+        .playlist-item {
+            background: rgba(245, 241, 237, 0.03);
+            border: 1px solid rgba(217, 70, 160, 0.15);
+            padding: 0.75rem;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .playlist-item:hover {
+            background: rgba(245, 241, 237, 0.08);
+            border-color: rgba(217, 70, 160, 0.3);
+        }
+
+        .playlist-item.active {
+            background: rgba(217, 70, 160, 0.15);
+            border-color: var(--deep-pink);
+        }
+
+        .playlist-item-name {
+            flex: 1;
+            word-break: break-word;
+        }
+
+        .delete-track-btn {
+            background: rgba(217, 70, 160, 0.3);
+            border: 1px solid rgba(217, 70, 160, 0.5);
+            color: var(--deep-pink);
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin: 0;
+            width: auto;
+        }
+
+        .delete-track-btn:hover {
+            background: rgba(217, 70, 160, 0.5);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 1.5rem;
+            color: rgba(245, 241, 237, 0.5);
+            font-size: 0.9rem;
+        }
+
+        audio {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            header {
+                padding: 1.5rem 1rem;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            main {
+                padding: 1rem;
+                gap: 1rem;
+            }
+
+            .player-container {
+                padding: 1.5rem;
+            }
+
+            .volume-controls {
+                grid-template-columns: 1fr;
+            }
+
+            .play-btn {
+                width: 60px;
+                height: 60px;
+                font-size: 1.5rem;
+            }
+
+            .btn-icon {
+                width: 45px;
+                height: 45px;
+                font-size: 1.1rem;
+            }
+
+            .upload-section {
+                padding: 1rem;
+            }
+
+            .playlist {
+                max-height: 200px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <h1>🎵 Subliminal Audio</h1>
+        </div>
+    </header>
+
+    <main>
+        <!-- Player -->
+        <div class="player-container">
+            <div class="track-info">
+                <div class="track-title" id="currentTrack">No track selected</div>
+                <div class="track-time">
+                    <span id="currentTime">0:00</span> / <span id="duration">0:00</span>
+                </div>
+            </div>
+
+            <div class="progress-container">
+                <div class="progress-bar" id="progressBar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button class="btn-icon" id="prevBtn">⏮</button>
+                <button class="play-btn" id="playBtn">▶</button>
+                <button class="btn-icon" id="nextBtn">⏭</button>
+                <button class="btn-secondary btn-icon" id="loopBtn">🔃</button>
+            </div>
+
+            <div class="volume-controls">
+                <div class="volume-control">
+                    <label class="volume-label">Subliminals</label>
+                    <input type="range" id="volumeSlider1" min="0" max="100" value="70">
+                    <div class="volume-value" id="volumeValue1">70%</div>
+                </div>
+                <div class="volume-control">
+                    <label class="volume-label">Theta Waves</label>
+                    <input type="range" id="volumeSlider2" min="0" max="100" value="70">
+                    <div class="volume-value" id="volumeValue2">70%</div>
+                </div>
+                <div class="volume-control">
+                    <label class="volume-label">Music</label>
+                    <input type="range" id="volumeSlider3" min="0" max="100" value="70">
+                    <div class="volume-value" id="volumeValue3">70%</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upload Sections -->
+        <div class="upload-sections">
+            <!-- Sublimnals -->
+            <div class="upload-section">
+                <h2 class="section-title">📁 Upload Subliminals</h2>
+                <div class="upload-area" data-category="subliminals">
+                    <div class="upload-text">
+                        Click or drop audio files
+                        <small>MP3, WAV, M4A, OGG</small>
+                    </div>
+                </div>
+                <div class="playlist" data-category="subliminals"></div>
+            </div>
+
+            <!-- Theta Waves -->
+            <div class="upload-section">
+                <h2 class="section-title">🌊 Upload Theta Waves</h2>
+                <div class="upload-area" data-category="theta">
+                    <div class="upload-text">
+                        Click or drop audio files
+                        <small>MP3, WAV, M4A, OGG</small>
+                    </div>
+                </div>
+                <div class="playlist" data-category="theta"></div>
+            </div>
+
+            <!-- Music -->
+            <div class="upload-section">
+                <h2 class="section-title">🎶 Upload Music</h2>
+                <div class="upload-area" data-category="music">
+                    <div class="upload-text">
+                        Click or drop audio files
+                        <small>MP3, WAV, M4A, OGG</small>
+                    </div>
+                </div>
+                <div class="playlist" data-category="music"></div>
+            </div>
+        </div>
+    </main>
+
+    <audio id="audioPlayer"></audio>
+
+    <script>
+        // IndexedDB Setup
+        let db;
+        const dbName = 'SubliminalDB';
+        const storeName = 'tracks';
+
+        const dbRequest = indexedDB.open(dbName, 1);
+
+        dbRequest.onerror = () => console.error('IndexedDB error:', dbRequest.error);
+        dbRequest.onsuccess = () => {
+            db = dbRequest.result;
+            loadPlaylist();
+        };
+
+        dbRequest.onupgradeneeded = (e) => {
+            db = e.target.result;
+            if (!db.objectStoreNames.contains(storeName)) {
+                db.createObjectStore(storeName, { keyPath: 'id', autoIncrement: true });
+            }
+        };
+
+        // App State
+        const state = {
+            tracks: { subliminals: [], theta: [], music: [] },
+            currentTrackIndex: 0,
+            currentCategory: 'subliminals',
+            isPlaying: false,
+            loopMode: 'all',
+            volumes: { subliminals: 0.7, theta: 0.7, music: 0.7 }
+        };
+
+        // Elements
+        const elements = {
+            audio: document.getElementById('audioPlayer'),
+            playBtn: document.getElementById('playBtn'),
+            prevBtn: document.getElementById('prevBtn'),
+            nextBtn: document.getElementById('nextBtn'),
+            loopBtn: document.getElementById('loopBtn'),
+            progressBar: document.getElementById('progressBar'),
+            progressFill: document.getElementById('progressFill'),
+            currentTimeEl: document.getElementById('currentTime'),
+            durationEl: document.getElementById('duration'),
+            currentTrackEl: document.getElementById('currentTrack'),
+            uploadAreas: document.querySelectorAll('.upload-area'),
+            playlists: document.querySelectorAll('.playlist'),
+            volumeSliders: {
+                subliminals: document.getElementById('volumeSlider1'),
+                theta: document.getElementById('volumeSlider2'),
+                music: document.getElementById('volumeSlider3')
+            },
+            volumeValues: {
+                subliminals: document.getElementById('volumeValue1'),
+                theta: document.getElementById('volumeValue2'),
+                music: document.getElementById('volumeValue3')
+            }
+        };
+
+        // Load all tracks from IndexedDB
+        function loadPlaylist() {
+            const transaction = db.transaction([storeName], 'readonly');
+            const store = transaction.objectStore(storeName);
+            const request = store.getAll();
+
+            request.onsuccess = () => {
+                state.tracks = { subliminals: [], theta: [], music: [] };
+                request.result.forEach(track => {
+                    if (!state.tracks[track.category]) {
+                        state.tracks[track.category] = [];
+                    }
+                    state.tracks[track.category].push(track);
+                });
+                renderAllPlaylists();
+            };
+        }
+
+        // Render all playlists
+        function renderAllPlaylists() {
+            Object.keys(state.tracks).forEach(category => {
+                renderPlaylist(category);
+            });
+        }
+
+        // Render playlist for category
+        function renderPlaylist(category) {
+            const playlistEl = document.querySelector(`.playlist[data-category="${category}"]`);
+            playlistEl.innerHTML = '';
+
+            if (state.tracks[category].length === 0) {
+                playlistEl.innerHTML = `<div class="empty-state">No tracks yet</div>`;
+                return;
+            }
+
+            state.tracks[category].forEach((track, index) => {
+                const item = document.createElement('div');
+                item.className = 'playlist-item' + (category === state.currentCategory && index === state.currentTrackIndex ? ' active' : '');
+                item.innerHTML = `
+                    <span>${track.name}</span>
+                    <button class="delete-track-btn">✕</button>
+                `;
+
+                item.querySelector('span').addEventListener('click', () => {
+                    state.currentCategory = category;
+                    state.currentTrackIndex = index;
+                    loadTrack();
+                    play();
+                    renderAllPlaylists();
+                });
+
+                item.querySelector('.delete-track-btn').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    deleteTrack(category, track.id);
+                });
+
+                playlistEl.appendChild(item);
+            });
+        }
+
+        // Handle file upload
+        function handleFile(file, category) {
+            if (!file.type.startsWith('audio/')) {
+                alert('Please upload an audio file');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const audio = new Audio();
+                audio.onloadedmetadata = () => {
+                    const track = {
+                        name: file.name,
+                        duration: audio.duration,
+                        category: category,
+                        blob: e.target.result,
+                        timestamp: Date.now()
+                    };
+
+                    const transaction = db.transaction([storeName], 'readwrite');
+                    const store = transaction.objectStore(storeName);
+                    const request = store.add(track);
+
+                    request.onsuccess = () => {
+                        loadPlaylist();
+                    };
+
+                    request.onerror = () => {
+                        alert('Error saving file');
+                    };
+                };
+                audio.src = e.target.result;
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // Delete track
+        function deleteTrack(category, id) {
+            const transaction = db.transaction([storeName], 'readwrite');
+            const store = transaction.objectStore(storeName);
+            const request = store.delete(id);
+
+            request.onsuccess = () => {
+                loadPlaylist();
+                if (state.isPlaying && state.currentCategory === category) {
+                    stop();
+                }
+            };
+        }
+
+        // Load current track
+        function loadTrack() {
+            const currentTracks = state.tracks[state.currentCategory];
+            if (currentTracks.length === 0) return;
+
+            const track = currentTracks[state.currentTrackIndex];
+            elements.audio.src = URL.createObjectURL(new Blob([track.blob], { type: 'audio/mpeg' }));
+            elements.currentTrackEl.textContent = `${track.name} (${state.currentCategory})`;
+            elements.durationEl.textContent = formatTime(track.duration);
+        }
+
+        // Play/Pause
+        function play() {
+            const currentTracks = state.tracks[state.currentCategory];
+            if (currentTracks.length === 0) return;
+            if (elements.audio.src === '') loadTrack();
+            elements.audio.volume = state.volumes[state.currentCategory];
+            elements.audio.play();
+            state.isPlaying = true;
+            updatePlayBtn();
+        }
+
+        function pause() {
+            elements.audio.pause();
+            state.isPlaying = false;
+            updatePlayBtn();
+        }
+
+        function stop() {
+            elements.audio.pause();
+            elements.audio.currentTime = 0;
+            state.isPlaying = false;
+            updatePlayBtn();
+        }
+
+        function updatePlayBtn() {
+            elements.playBtn.textContent = state.isPlaying ? '⏸' : '▶';
+        }
+
+        // Navigation
+        function nextTrack() {
+            const currentTracks = state.tracks[state.currentCategory];
+            if (currentTracks.length === 0) return;
+            state.currentTrackIndex = (state.currentTrackIndex + 1) % currentTracks.length;
+            loadTrack();
+            if (state.isPlaying) play();
+        }
+
+        function prevTrack() {
+            const currentTracks = state.tracks[state.currentCategory];
+            if (currentTracks.length === 0) return;
+            state.currentTrackIndex = (state.currentTrackIndex - 1 + currentTracks.length) % currentTracks.length;
+            loadTrack();
+            if (state.isPlaying) play();
+        }
+
+        // Loop
+        function toggleLoop() {
+            const modes = ['off', 'one', 'all'];
+            const icons = { off: '🔁', one: '🔂', all: '🔃' };
+            const index = modes.indexOf(state.loopMode);
+            state.loopMode = modes[(index + 1) % modes.length];
+            elements.loopBtn.textContent = icons[state.loopMode];
+        }
+
+        // Progress tracking
+        function updateProgress() {
+            const percent = (elements.audio.currentTime / elements.audio.duration) * 100 || 0;
+            elements.progressFill.style.width = percent + '%';
+            elements.currentTimeEl.textContent = formatTime(elements.audio.currentTime);
+        }
+
+        function seekTrack(e) {
+            const percent = e.offsetX / elements.progressBar.offsetWidth;
+            elements.audio.currentTime = percent * elements.audio.duration;
+        }
+
+        // Format time
+        function formatTime(seconds) {
+            if (!seconds || isNaN(seconds)) return '0:00';
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // Event Listeners
+        elements.playBtn.addEventListener('click', () => {
+            if (state.tracks[state.currentCategory].length === 0) return;
+            state.isPlaying ? pause() : play();
+        });
+
+        elements.nextBtn.addEventListener('click', nextTrack);
+        elements.prevBtn.addEventListener('click', prevTrack);
+        elements.loopBtn.addEventListener('click', toggleLoop);
+
+        elements.progressBar.addEventListener('click', seekTrack);
+        elements.audio.addEventListener('timeupdate', updateProgress);
+
+        elements.audio.addEventListener('ended', () => {
+            if (state.loopMode === 'one') {
+                elements.audio.currentTime = 0;
+                play();
+            } else if (state.loopMode === 'all') {
+                nextTrack();
+            } else if (state.loopMode === 'off') {
+                const currentTracks = state.tracks[state.currentCategory];
+                if (state.currentTrackIndex < currentTracks.length - 1) {
+                    nextTrack();
+                } else {
+                    stop();
+                }
+            }
+        });
+
+        // Volume controls
+        ['subliminals', 'theta', 'music'].forEach(category => {
+            elements.volumeSliders[category].addEventListener('input', (e) => {
+                const vol = parseInt(e.target.value);
+                state.volumes[category] = vol / 100;
+                elements.volumeValues[category].textContent = vol + '%';
+                if (state.currentCategory === category && state.isPlaying) {
+                    elements.audio.volume = state.volumes[category];
+                }
+            });
+        });
+
+        // Upload handlers
+        // Initialize loop button to show current mode
+        const loopIcons = { off: '🔁', one: '🔂', all: '🔃' };
+        elements.loopBtn.textContent = loopIcons[state.loopMode];
+
+        elements.uploadAreas.forEach(area => {
+            const category = area.dataset.category;
+
+            area.addEventListener('click', () => {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = 'audio/*';
+                input.multiple = true;
+                input.addEventListener('change', (e) => {
+                    Array.from(e.target.files).forEach(file => handleFile(file, category));
+                });
+                input.click();
+            });
+
+            area.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                area.classList.add('dragover');
+            });
+
+            area.addEventListener('dragleave', () => {
+                area.classList.remove('dragover');
+            });
+
+            area.addEventListener('drop', (e) => {
+                e.preventDefault();
+                area.classList.remove('dragover');
+                Array.from(e.dataTransfer.files).forEach(file => handleFile(file, category));
+            });
+        });
+    </script>
+</body>
+</html>
